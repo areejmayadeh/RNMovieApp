@@ -39,3 +39,11 @@ export const getMovieDetails = async (body = {}) => {
         body
     );
 }
+
+export const getMovieCredits = async (body = {}) => {
+    return await sendRequest(
+        `/movie/${body.movie_id}/credits`,
+        'GET',
+        body
+    )
+}

@@ -9,16 +9,18 @@ import {
   TouchableOpacity,
   ActivityIndicator
 } from 'react-native';
-import { 
-  getPopular, 
+import {
+  getPopular,
   getMoviesGenres,
   getUpcomingMovies,
   getTopRatedMovies,
 } from '../api';
 class MoviesList extends React.Component {
-  static navigationOptions = {
-    headerTitle: 'Movies',
-  };
+  static navigationOptions = ({ navigation }) => {
+    return {
+       header: () => null
+    } 
+}
 
   constructor(props) {
     super(props);
@@ -41,36 +43,36 @@ class MoviesList extends React.Component {
 
   fetchData = (item) => {
     let { isLoading } = this.state;
-    this.setState({ isLoading: true});
+    this.setState({ isLoading: true });
 
-    if(item == 'Popular') {
+    if (item == 'Popular') {
       getPopular({
         'page': 1
       }).then((response) => {
-        this.setState({ isLoading: false});
-        if(response.data && response.data.results) {
+        this.setState({ isLoading: false });
+        if (response.data && response.data.results) {
           this.setState({
             data: response.data.results
           });
         }
       });
-    } else if(item == 'Upcoming') {
+    } else if (item == 'Upcoming') {
       getUpcomingMovies({
         'page': 1
       }).then((response) => {
-        this.setState({ isLoading: false});
-        if(response.data && response.data.results) {
+        this.setState({ isLoading: false });
+        if (response.data && response.data.results) {
           this.setState({
             data: response.data.results
           });
         }
       });
-    } else if(item == 'Top Rated') {
+    } else if (item == 'Top Rated') {
       getTopRatedMovies({
         'page': 1
       }).then((response) => {
-        this.setState({ isLoading: false});
-        if(response.data && response.data.results) {
+        this.setState({ isLoading: false });
+        if (response.data && response.data.results) {
           this.setState({
             data: response.data.results
           });
@@ -81,7 +83,7 @@ class MoviesList extends React.Component {
 
   getGenres = () => {
     getMoviesGenres({}).then((res) => {
-      if(res.data && res.data.genres) {
+      if (res.data && res.data.genres) {
         this.setState({
           genres: res.data.genres
         });
@@ -94,44 +96,41 @@ class MoviesList extends React.Component {
   }
 
   render() {
-    let { data , tabs, selectedType} = this.state;
+    let { data, tabs, selectedType } = this.state;
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         {data.length > 0 ?
           <FlatList
             ListHeaderComponent={
-            <>
-             <Text style={{    marginHorizontal: 20, fontSize: 32, fontWeight: 'bold', marginBottom: 10}}>Movies</Text>
-             <View style={{flexDirection: 'row', marginHorizontal: 16, justifyContent: 'space-between'}}> 
-        { tabs.map((item) => {
-            return (
-                <TouchableOpacity 
-                  style={[styles.tabContainer,selectedType == item ? {borderColor : '#6fda5a', backgroundColor: '#6fda5a'} : {}]}
-                  onPress={() => {
-                    this.setState({ selectedType: item});
-                    this.fetchData(item)
-                  }}
-                >
-                  <Text style={selectedType == item ? styles.tabNameSelected : styles.tabName}>{item}</Text>
-                </TouchableOpacity>
-           
-            )
-          }) 
+              <>
+                <Text style={{ marginHorizontal: 20, fontSize: 32, fontWeight: 'bold', marginBottom: 10 }}>Movies</Text>
+                <View style={{ flexDirection: 'row', marginHorizontal: 16, justifyContent: 'space-between' }}>
+                  {tabs.map((item) => {
+                    return (
+                      <TouchableOpacity
+                        style={[styles.tabContainer, selectedType == item ? { borderColor: '#6fda5a', backgroundColor: '#6fda5a' } : {}]}
+                        onPress={() => {
+                          this.setState({ selectedType: item });
+                          this.fetchData(item)
+                        }}
+                      >
+                        <Text style={selectedType == item ? styles.tabNameSelected : styles.tabName}>{item}</Text>
+                      </TouchableOpacity>
 
-        }
-           </View>
-           
-            </>
+                    )
+                  })}
+                </View>
+              </>
             }
             data={data}
             initialNumToRender={4}
             renderItem={(item) =>
-              <Item item={item.item} genres={this.state.genres} />
+              <Item item={item.item} genres={this.state.genres} navigation={this.props.navigation}/>
             }
             keyExtractor={(item, index) => item.id}
           />
-          : <ActivityIndicator size={'large'}/>}
-      </SafeAreaView>
+          : <ActivityIndicator size={'large'} />}
+      </View>
     );
   }
 }
@@ -154,7 +153,9 @@ const Item = (props) => {
   let genres = props.genres;
   let details = props.item;
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={() => props.navigation.push('MovieDetails', {
+      id: details.id
+    })}>
       <View style={styles.itemContainer}>
         <View style={styles.imageContainer}>
           <Image
@@ -175,15 +176,15 @@ const Item = (props) => {
         </View>
         <Text style={styles.rate}>{`${(details.vote_average) * 10}%`}</Text>
       </View>
-
-    </View>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 60,
+    paddingTop: 60,
+    backgroundColor: 'white'
   },
   card: {
     backgroundColor: '#f9c2ff',

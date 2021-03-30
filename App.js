@@ -7,59 +7,38 @@
  */
 
 import React from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-import './src/connection';
 import MoviesList from './src/components/MoviesList';
 import MovieDetails from './src/components/MovieDetails';
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+const Stack = createStackNavigator();
 
 const App = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
   return (
-    
-      <MovieDetails />
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen 
+          name="MovieDetails" 
+          component={MovieDetails} 
+          options={{
+            title: '',
+            headerTintColor: 'black',
+            headerBackTitleVisible: false,
+            headerStyle: {
+              shadowColor: 'transparent',
+            },
+            headerLeftContainerStyle: { marginHorizontal: 14}
+          }}
+        />
+        <Stack.Screen 
+          name="Home" 
+          component={MoviesList}
+          options={{ headerShown: false,  headerTitle: ''}}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
 
   );
 };
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
 export default App;

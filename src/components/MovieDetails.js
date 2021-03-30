@@ -1,163 +1,174 @@
-//644583
 import React from 'react';
 import {
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator
+    StyleSheet,
+    Text,
+    View,
+    FlatList,
+    Image,
+    ScrollView,
 } from 'react-native';
-import { 
-  getMovieDetails,
+import {
+    getMovieDetails,
+    getMovieCredits,
 } from '../api';
+
 class MovieDetails extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      data: [],
-      isLoading: false,
-    }
-  }
-
-
-  componentDidMount() {
-    this.fetchData();
-
-  }
-
-  fetchData = () => {
-    let { isLoading } = this.state;
-    getMovieDetails({ movie_id : 644583}).then((res) => {
-        console.log(res.data)
-        if(res.status == 200) {
-            this.setState({ data: res.data});
+    constructor(props) {
+        super(props);
+        this.state = {
+            data: [],
+            credits: [],
         }
-    })
-  }
+    }
+    
+    componentDidMount() {
+        this.fetchData();
+    }
 
+    fetchData = () => {
+        getMovieDetails({ movie_id: 644583 }).then((res) => {
+            if (res.status == 200) {
+                this.setState({ data: res.data });
+            }
+        });
+        getMovieCredits({ movie_id: 644583}).then((res) => {
+            console.log(res)
+            if (res.status == 200) {
+                this.setState({ credits: res.data.cast });
+            }
+        });
+    }
 
-
-  render() {
-    let { data } = this.state;
-    return (
-      <SafeAreaView style={styles.container}>
-           <Image
-            style={styles.image}
-            source={{
-              uri: `https://image.tmdb.org/t/p/w500/${data.poster_path}`,
-            }}
-          />
-          <Text style={styles.title}>{data.title}</Text>
-          <Text style={styles.rate}>{`${(data.vote_average) * 10}%`}</Text>
-          <View style={{marginVertical: 10}}>
-              <Text style={{ fontWeight: 'bold', fontSize: 20, lineHeight: 0.1}}>Overview</Text>
-              <Text>{data.overview}</Text>
-          </View>
-      </SafeAreaView>
-    );
-  }
+    render() {
+        let { data, credits } = this.state;
+        return (
+            <ScrollView style={styles.container}>
+                <Image
+                    style={styles.image}
+                    source={{
+                        uri: `https://image.tmdb.org/t/p/w500/${data.poster_path}`,
+                    }}
+                />
+                <Text style={styles.title}>{data.title}</Text>
+                <Text style={styles.rate}>{`${(data.vote_average) * 10}%`}</Text>
+                <View style={{ marginVertical: 10 }}>
+                    <Text style={styles.overViewTitle}>Overview</Text>
+                    <Text style={styles.overViewText}>{data.overview}</Text>
+                </View>
+                {data.genres && data.genres.length > 0 ?
+                    <>
+                        <Text style={[styles.overViewTitle, {marginTop: 10}]}>Genres</Text>
+                        <View style={styles.tagsContainer}>
+                            {data.genres.map((genre) => <Tag tag={genre.name} />)}
+                        </View>
+                    </>
+                : null}
+                {credits.length > 0 ? 
+                    <>
+                        <Text style={[styles.overViewTitle, {marginTop: 10}]}>Credits</Text>
+                        <FlatList
+                            horizontal={true}
+                            data={credits}
+                            renderItem={(item) =>
+                                <Credit credit={item} />
+                            }
+                        />
+                    </>                
+                : null}
+            </ScrollView>
+        );
+    }
 }
-
 export default MovieDetails;
 
+const Tag = (props) => {
+    let { tag } = props;
+    return tag.length > 0 ?
+        <View style={styles.tagContainer}>
+            <Text style={styles.tagName}>{tag}</Text>
+        </View>
+        : null
+}
+
+const Credit = (props) => {
+    let { credit } = props;
+    return (
+        <View style={styles.creditContainer}>
+            <Image 
+                style={styles.creditImage} 
+                source={{ uri: `https://image.tmdb.org/t/p/w500/${credit.item.profile_path}`}}
+            />
+            <Text style={styles.creditText}>{credit.item.name}</Text>
+        </View>
+    )
+}
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignContent: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 16
-  },
-  card: {
-    backgroundColor: '#f9c2ff',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 5,
-
-    backgroundColor: "white",
-    borderRadius: 10,
-    justifyContent: 'center',
-    marginVertical: 8,
-    marginHorizontal: 16,
-    padding: 20,
-  },
-  tabContainer: {
-    borderWidth: 1,
-    borderRadius: 30,
-    padding: 10,
-    backgroundColor: '#d5d5d5',
-    borderColor: '#d5d5d5',
-    marginRight: 5,
-    marginBottom: 10,
-    flex: 1,
-    alignItems: 'center'
-  },
-  tabName: {
-    fontSize: 16,
-    fontWeight: 'bold'
-  },
-  tabNameSelected: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white'
-  },
-  itemContainer: {
-    flexDirection: 'row',
-    flex: 1
-  },
-  imageContainer: {
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  image: {
-    width: 180,
-    height: 250,
-    alignSelf: 'center',
-    borderRadius: 10,
-    marginBottom: 20
-  },
-  detailsContainer: {
-    flex: 1,
-    marginLeft: 16
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    flexWrap: 'wrap',
-    alignSelf: 'center',
-    marginBottom: 10
-  },
-  releaseDate: {
-    fontSize: 14,
-    color: '#6f6f6e',
-    marginVertical: 12
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 6
-  },
-  tagContainer: {
-    borderWidth: 1,
-    borderRadius: 30,
-    padding: 4,
-    backgroundColor: '#d5d5d5',
-    borderColor: '#d5d5d5',
-    marginRight: 5,
-    marginBottom: 6
-  },
-  tagName: {
-    fontSize: 12
-  },
-  rate: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#6fda5a',
-    alignSelf: 'center',
-  },
-
+    container: {
+        flex: 1,
+        paddingTop: 20,
+        paddingHorizontal: 16,
+        backgroundColor: 'white'
+    },
+    image: {
+        width: 180,
+        height: 250,
+        alignSelf: 'center',
+        borderRadius: 10,
+        marginBottom: 20
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        flexWrap: 'wrap',
+        alignSelf: 'center',
+        marginBottom: 10
+    },
+    tagsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginTop: 6
+    },
+    tagContainer: {
+        borderWidth: 1,
+        borderRadius: 30,
+        padding: 8,
+        backgroundColor: '#d5d5d5',
+        borderColor: '#d5d5d5',
+        marginRight: 10,
+        marginBottom: 6
+    },
+    tagName: {
+        fontSize: 14,
+        fontWeight: 'bold'
+    },
+    rate: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#6fda5a',
+        alignSelf: 'center',
+    },
+    creditContainer: {
+        marginRight: 10, 
+        justifyContent: 'center', 
+        alignItems: 'center'
+    },
+    creditImage: {
+        width: 70, 
+        height: 70, 
+        borderRadius: 70, 
+        marginBottom: 10
+    },
+    creditText: {
+        fontWeight: '500', 
+        fontSize: 14
+    },
+    overViewTitle: {
+        fontWeight: 'bold', 
+        fontSize: 18, 
+        lineHeight: 40,
+    },
+    overViewText: {
+        fontSize: 16,
+    },
 });
